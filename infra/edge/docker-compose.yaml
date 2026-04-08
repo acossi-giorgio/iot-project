@@ -25,8 +25,15 @@ services:
       - .env
     ports:
       - "11435:11434"
-    environment:
-      - OLLAMA_NO_GPU=1
+    # environment:
+      # - OLLAMA_NO_GPU=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   mqtt-broker:
     image: eclipse-mosquitto:latest
