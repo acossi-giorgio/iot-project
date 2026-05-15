@@ -1,5 +1,5 @@
 {
-    "mqtt_url": "mqtt://localhost:1883",
+    "mqtt_url": "mqtt://iot-mqtt-broker:1883",
     "sensors": [
         {
             "type": "heart_rate",

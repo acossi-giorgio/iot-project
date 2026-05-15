@@ -27,7 +27,7 @@
         "env": [
             {
                 "name": "INFLUX_TOKEN",
-                "value": "uKxjyZ0H4tg84dko",
+                "value": "n_Rw-qNC3zFRSx4ykbCbGa3KItB7DquWXMeMp_UhmhlxIBkxAfxEJuuCafW6orAM7j6rBAhT4ki09pR-2diPEA==",
                 "type": "str"
             },
             {
@@ -265,7 +265,7 @@
         "usetls": false,
         "tls": "",
         "influxdbVersion": "2.0",
-        "url": "http://iot-server-influxdb:8086",
+        "url": "http://influxdb:8086",
         "timeout": "10",
         "rejectUnauthorized": true
     },
@@ -289,7 +289,7 @@
         "minPoolSize": "0",
         "maxPoolSize": "100",
         "maxIdleTimeMS": "0",
-        "uri": "mongodb://iot-server-mongo:27017",
+        "uri": "mongodb://mongo:27017",
         "advanced": "{}",
         "uriTabActive": "tab-uri-advanced"
     },

@@ -1,6 +1,5 @@
 import fetch from 'node-fetch';
 import { getRedis } from '../config/redis.mjs';
-import https from 'https';
 import { env } from '../config/env.mjs';
 import { logger } from '../config/logger.mjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,19 +9,17 @@ async function startSessionRequest() {
   const base = env.backendBaseUrl;
   const url = `${base}/session/start`;
   const body = { deviceId: env.deviceId };
-  const agent = new https.Agent({ rejectUnauthorized: false });
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': env.apiKey
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(body),
-      agent: agent
+      body: JSON.stringify(body)
     });
     if (!response.ok) {
-      logger.error(`${logPrefix} create session failed offline mode`);
+      const body = await response.text().catch(() => '');
+      logger.error(`${logPrefix} create session failed status=${response.status} body=${body}`);
       return { sessionId: uuidv4(), offline: true };
     }
     const jsonResponse = await response.json();
@@ -39,16 +36,13 @@ async function closeSessionRequest(sessionId) {
   const base = env.backendBaseUrl;
   const url = `${base}/session/end`;
   const body = { deviceId: env.deviceId, sessionId: sessionId };
-  const agent = new https.Agent({ rejectUnauthorized: false });
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': env.apiKey
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(body),
-      agent: agent
+      body: JSON.stringify(body)
     });
     if (!response.ok) throw new Error(`end session failed status ${response.status}`);
   } catch (e) {

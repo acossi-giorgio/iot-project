@@ -3,8 +3,6 @@ from(bucket:"vitals")
   |> filter(fn: (r) => r._measurement == "health")
   |> last()
 
-
-
 from(bucket: "vitals")
   |> range(start: 0)
   |> filter(fn: (r) => r["_measurement"] == "vitals_heart_rate")

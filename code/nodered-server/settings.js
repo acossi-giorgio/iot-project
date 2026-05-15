@@ -41,7 +41,7 @@ module.exports = {
      * node-red from being able to decrypt your existing credentials and they will be
      * lost.
      */
-    //credentialSecret: "a-secret-key",
+    credentialSecret: false,
 
     /** By default, the flow JSON will be formatted over multiple lines making
      * it easier to compare changes when using version control.
@@ -73,14 +73,14 @@ module.exports = {
     /** To password protect the Node-RED editor and admin API, the following
      * property can be used. See https://nodered.org/docs/security.html for details.
      */
-    adminAuth: {
-       type: "credentials",
-       users: [{
-           username: "admin",
-           password: "$2y$08$2Niz06DcKQZwUE1c1UFbK.3eov/97t/iN71qUAJJf8aN9LJGVtbpW",
-           permissions: "*"
-       }]
-    },
+    //adminAuth: {
+    //   type: "credentials",
+    //   users: [{
+    //       username: "admin",
+    //       password: "$2y$08$2Niz06DcKQZwUE1c1UFbK.3eov/97t/iN71qUAJJf8aN9LJGVtbpW",
+    //       permissions: "*"
+    //   }]
+    //},
 
     /** The following property can be used to enable HTTPS
      * This property can be either an object, containing both a (private) key
@@ -216,19 +216,9 @@ module.exports = {
      * applied to all http in nodes, or any other sort of common request processing.
      * It can be a single function or an array of middleware functions.
      */
-    httpNodeMiddleware: function(req,res,next) {
-       // Check for API Key in Authorization header
-       // You can set the key via environment variable API_KEY
-       const apiKey = process.env.API_KEY;
-       // Headers are lowercased in Express/Node.js
-       const authHeader = req.headers['authorization'];
-       // Simple string match
-       if (authHeader === apiKey) {
-           return next();
-       }
-
-       res.status(401).send('Unauthorized: Invalid API Key');
-    },
+    // httpNodeMiddleware: function(req,res,next) {
+    //    next();
+    // },
 
     /** When httpAdminRoot is used to move the UI to a different root path, the
      * following property can be used to identify a directory of static content

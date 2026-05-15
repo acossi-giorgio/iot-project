@@ -1,0 +1,295 @@
+services:
+
+  # ─────────────────────────────────────────────
+  # Infrastructure / Data stores
+  # ─────────────────────────────────────────────
+
+  mongo:
+    image: mongo:latest
+    container_name: iot-mongo
+    networks:
+      - iot-network
+    volumes:
+      - mongo-db-data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    hostname: qdrant
+    container_name: iot-qdrant
+    networks:
+      - iot-network
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-storage:/qdrant/storage
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: iot-influxdb
+    networks:
+      - iot-network
+    ports:
+      - "8086:8086"
+    env_file:
+      - .env
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+      - DOCKER_INFLUXDB_INIT_RETENTION=${INFLUX_RETENTION}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: iot-redis
+    networks:
+      - iot-network
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # MQTT Broker
+  # Exposed externally so the local publisher
+  # can reach it at <server-ip>:1883
+  # ─────────────────────────────────────────────
+
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: iot-mqtt-broker
+    networks:
+      - iot-network
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ../code/mosquitto/config:/mosquitto/config
+      - ../code/mosquitto/data:/mosquitto/data
+      - ../code/mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Ollama — single shared instance
+  # Used by both backend (qwen3:30b) and
+  # edge-dashboard (qwen2.5:0.5b classifier)
+  # ─────────────────────────────────────────────
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: iot-ollama
+    networks:
+      - iot-network
+    ports:
+      - "11434:11434"
+    env_file:
+      - .env
+      - .env.local
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Ollama init — pulls all models at startup
+  # Reads model names from .env, exits when done
+  # ─────────────────────────────────────────────
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: iot-ollama-init
+    networks:
+      - iot-network
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "until ollama list; do echo '[ollama-init] waiting for ollama...'; sleep 3; done
+      && ollama pull ${CHAT_MODEL}
+      && ollama pull ${REWRITER_MODEL}
+      && ollama pull ${EMBEDDINGS_MODEL}
+      && ollama pull ${CLASSIFICATION_MODEL}
+      && echo '[ollama-init] all models ready'"
+    depends_on:
+      - ollama
+    restart: "no"
+
+  # ─────────────────────────────────────────────
+  # Node-RED — server side
+  # Processes incoming MQTT data, writes to
+  # InfluxDB / MongoDB
+  # ─────────────────────────────────────────────
+
+  node-red:
+    build:
+      context: ../code/nodered-server
+      dockerfile: Dockerfile
+    container_name: iot-nodered-server
+    networks:
+      - iot-network
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered-server-data:/data
+      - ../code/nodered-server/flows_cred.json:/data/flows_cred.json
+    environment:
+      - TZ=Europe/Rome
+      - PORT=1880
+    depends_on:
+      - mongo
+      - influxdb
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Node-RED — edge side
+  # ─────────────────────────────────────────────
+
+  nodered-edge:
+    build: ../code/nodered-edge
+    container_name: iot-nodered-edge
+    networks:
+      - iot-network
+    ports:
+      - "1881:1881"
+    volumes:
+      - nodered-edge-data:/data
+    environment:
+      - TZ=Europe/Rome
+      - PORT=1881
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Backend API
+  # Internal only — gateway proxies /api/backend/*
+  # ─────────────────────────────────────────────
+
+  backend:
+    build:
+      context: ../code/backend
+      dockerfile: Dockerfile
+    container_name: iot-backend
+    networks:
+      - iot-network
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      - FORCE_COLOR=1
+      - PORT=5000
+    depends_on:
+      - mongo
+      - qdrant
+      - ollama
+      - influxdb
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Edge Dashboard (FE)
+  # Internal only — gateway serves it at /*
+  # Calls backend directly via internal network
+  # ─────────────────────────────────────────────
+
+  edge-dashboard:
+    build:
+      context: ../code/edge-dashboard
+      dockerfile: Dockerfile
+    container_name: iot-edge-dashboard
+    networks:
+      - iot-network
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      - FORCE_COLOR=1
+      - PORT=4000
+    depends_on:
+      - redis
+      - ollama
+      - backend
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Gateway (express-gateway)
+  # Entrypoint: 80 (HTTP) / 443 (HTTPS)
+  # Routes:
+  #   /api/backend/*  → backend:5000
+  #   /api/nodered/*  → node-red:1880
+  #   /api/influxdb/* → influxdb:8086
+  #   /*              → edge-dashboard:4000
+  # ─────────────────────────────────────────────
+
+  gateway:
+    build:
+      context: ../code/gateway
+      dockerfile: Dockerfile
+    container_name: iot-gateway
+    networks:
+      iot-network:
+        aliases:
+          - gateway
+    ports:
+      - "80:8080"
+      - "443:8443"
+    env_file:
+      - .env
+    environment:
+      - FORCE_COLOR=1
+    volumes:
+      - gateway-data:/app/data
+    depends_on:
+      - backend
+      - node-red
+      - edge-dashboard
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Publisher — simulates IoT sensors
+  # SCENARIO=healthy (default) or heart_attack
+  # ─────────────────────────────────────────────
+
+  publisher:
+    build:
+      context: ../code/publisher
+      dockerfile: Dockerfile
+    container_name: iot-publisher
+    networks:
+      - iot-network
+    environment:
+      - SCENARIO=healthy
+    depends_on:
+      - mqtt-broker
+    restart: unless-stopped
+
+networks:
+  iot-network:
+    name: iot-network
+    driver: bridge
+
+volumes:
+  mongo-db-data:
+  qdrant-storage:
+  influxdb-data:
+  influxdb-config:
+  redis-data:
+  ollama-data:
+  nodered-server-data:
+  nodered-edge-data:
+  gateway-data:

@@ -19,7 +19,7 @@
         "id": "5a6f546862acaaca",
         "type": "mqtt-broker",
         "name": "mqtt-broker",
-        "broker": "iot-edge-mqtt-broker",
+        "broker": "mqtt-broker",
         "port": "1883",
         "clientid": "",
         "autoConnect": true,
@@ -52,7 +52,7 @@
         "env": [
             {
                 "name": "API_BASE_URL",
-                "value": "https://130.251.61.98/api/nodered",
+                "value": "http://node-red:1880",
                 "type": "str"
             },
             {
@@ -562,7 +562,7 @@
         "z": "5d2ab3a95d5847f9",
         "name": "send http request",
         "method": "use",
-        "ret": "obj",
+        "ret": "txt",
         "paytoqs": "ignore",
         "url": "",
         "tls": "",
@@ -880,7 +880,7 @@
         "z": "af2d12934ad47d49",
         "name": "send health request",
         "method": "use",
-        "ret": "obj",
+        "ret": "txt",
         "paytoqs": "ignore",
         "url": "",
         "tls": "",

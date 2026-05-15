@@ -18,22 +18,21 @@ admin:
 
 apiEndpoints:
   backend:
-    paths: "/api/backend/*"
-  nodered:
-    paths: "/api/nodered/*"
-  influxdb:
-    paths: "/api/influxdb/*"
+    paths:
+      - "/api/backend"
+      - "/api/backend/*"
+  dashboard:
+    paths:
+      - "/"
+      - "/*"
 
 serviceEndpoints:
   backend:
     url: "http://backend:5000"
-  nodered:
-    url: "http://node-red:1880"
-  influxdb:
-    url: "http://influxdb:8086"
+  dashboard:
+    url: "http://edge-dashboard:4000"
 
 policies:
-  - key-auth
   - proxy
 
 pipelines:
@@ -45,22 +44,11 @@ pipelines:
           - action:
               serviceEndpoint: backend
               changeOrigin: true
-              stripPath: true
-  noderedPipeline:
+  dashboardPipeline:
     apiEndpoints:
-      - nodered
+      - dashboard
     policies:
       - proxy:
           - action:
-              serviceEndpoint: nodered
+              serviceEndpoint: dashboard
               changeOrigin: true
-              stripPath: true
-  influxdbPipeline:
-    apiEndpoints:
-      - influxdb
-    policies:
-      - proxy:
-          - action:
-              serviceEndpoint: influxdb
-              changeOrigin: true
-              stripPath: true

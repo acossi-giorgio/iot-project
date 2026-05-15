@@ -1,7 +1,6 @@
 import { getRedis } from '../config/redis.mjs';
 import { classifyDomain } from '../ai/classifier.mjs';
 import { env } from '../config/env.mjs';
-import https from 'https';
 import fetch from 'node-fetch';
 
 function key(sessionId) {
@@ -12,11 +11,9 @@ async function submitInteraction(sessionId, question, answer) {
   const response = await fetch(`${env.backendBaseUrl}/interaction/submit`, {
     method: 'POST',
     headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': env.apiKey
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ deviceId: env.deviceId, sessionId, question, answer }),
-    agent: new https.Agent({ rejectUnauthorized: false })
+    body: JSON.stringify({ deviceId: env.deviceId, sessionId, question, answer })
   });
   if (!response.ok) throw new Error(`submit interaction failed with status ${response.status}`);
   return;
@@ -27,11 +24,9 @@ async function askInteraction(sessionId, question, dataAnalysis = false) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': env.apiKey
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ deviceId: env.deviceId, sessionId, question, dataAnalysis: !!dataAnalysis }),
-    agent: new https.Agent({ rejectUnauthorized: false })
+    body: JSON.stringify({ deviceId: env.deviceId, sessionId, question, dataAnalysis: !!dataAnalysis })
   });
   if (!response.ok) throw new Error(`ask interaction failed with status ${response.status}, body: ${await response.text()}`);
   return response.json();
