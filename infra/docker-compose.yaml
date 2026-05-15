@@ -65,7 +65,9 @@ services:
   # ─────────────────────────────────────────────
 
   mqtt-broker:
-    image: eclipse-mosquitto:latest
+    build:
+      context: ../code/mosquitto
+      dockerfile: Dockerfile
     container_name: iot-mqtt-broker
     networks:
       - iot-network
@@ -73,7 +75,6 @@ services:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - ../code/mosquitto/config:/mosquitto/config
       - mosquitto-data:/mosquitto/data
       - mosquitto-log:/mosquitto/log
     restart: unless-stopped
@@ -149,7 +150,6 @@ services:
       - "1880:1880"
     volumes:
       - nodered-server-data:/data
-      - ../code/nodered-server/flows_cred.json:/data/flows_cred.json
     environment:
       - TZ=Europe/Rome
       - PORT=1880
