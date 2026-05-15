@@ -74,8 +74,8 @@ services:
       - "9001:9001"
     volumes:
       - ../code/mosquitto/config:/mosquitto/config
-      - ../code/mosquitto/data:/mosquitto/data
-      - ../code/mosquitto/log:/mosquitto/log
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
     restart: unless-stopped
 
   # ─────────────────────────────────────────────
@@ -293,3 +293,5 @@ volumes:
   nodered-server-data:
   nodered-edge-data:
   gateway-data:
+  mosquitto-data:
+  mosquitto-log:
