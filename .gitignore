@@ -7,8 +7,6 @@ rasperry/mosquitto/log/**/*
 infra/edge/nodered-data/
 code/mosquitto/data/
 code/mosquitto/log/
-code/publisher/package-lock.json
-code/publisher/package.json
 volumes/
 venv/
 __pycache__/
