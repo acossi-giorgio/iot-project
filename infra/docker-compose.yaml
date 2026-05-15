@@ -54,6 +54,8 @@ services:
     container_name: iot-redis
     networks:
       - iot-network
+    ports:
+      - "6379:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
@@ -161,6 +163,8 @@ services:
     container_name: iot-backend
     networks:
       - iot-network
+    ports:
+      - "5000:5000"
     env_file:
       - .env
       - .env.local
@@ -187,6 +191,8 @@ services:
     container_name: iot-edge-dashboard
     networks:
       - iot-network
+    ports:
+      - "4000:4000"
     env_file:
       - .env
       - .env.local
