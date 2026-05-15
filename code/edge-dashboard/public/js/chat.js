@@ -4,22 +4,11 @@
     const thread = document.getElementById('chat-thread');
     const sendButton = document.getElementById('send-btn');
     const conversationIdElement = document.getElementById('conv-id');
-    const dataAnalysisButton = document.getElementById('chat-data-analysis-btn');
-    let isDataAnalysisEnabled = true;
+    const planSelect = document.getElementById('chat-plan-select');
 
-    function updateDataAnalysisVisuals() {
-        if (!dataAnalysisButton) return;
-        dataAnalysisButton.classList.toggle('btn-outline-success', !isDataAnalysisEnabled);
-        dataAnalysisButton.classList.toggle('btn-success', isDataAnalysisEnabled);
-        dataAnalysisButton.setAttribute('aria-pressed', isDataAnalysisEnabled ? 'true' : 'false');
-        dataAnalysisButton.title = 'Analysis of clinical data';
+    function getCurrentPlan() {
+        return planSelect?.value || 'ragWithRephrasing';
     }
-
-    dataAnalysisButton?.addEventListener('click', () => {
-        isDataAnalysisEnabled = !isDataAnalysisEnabled;
-        updateDataAnalysisVisuals();
-    });
-    updateDataAnalysisVisuals();
 
     input.addEventListener('keydown', event => {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -54,7 +43,7 @@
         bubbleElement.dataset.markdownParsed = '1';
     }
 
-    function addMessage(role, content, dataAnalysis = false) {
+    function addMessage(role, content, plan = 'ragWithRephrasing') {
         const promptsContainer = document.getElementById('suggested-prompts');
         if (promptsContainer) {
             promptsContainer.remove();
@@ -65,7 +54,8 @@
 
         const messageBubble = document.createElement('div');
         const baseClasses = 'border rounded-3 p-2 shadow-sm markdown';
-        messageBubble.className = baseClasses + (role === 'user' ? ' bg-primary-subtle border-primary-subtle' : ' bg-white');
+        const isDataAnalysis = plan === 'dataAnalysis';
+        messageBubble.className = baseClasses + (role === 'user' ? ' bg-primary-subtle border-primary-subtle' : ' bg-white') + (isDataAnalysis ? ' pe-4 position-relative' : '');
 
         messageBubble.textContent = content || '';
         parseMarkdown(messageBubble, content || '');
@@ -112,11 +102,10 @@
         suggestedPrompts.forEach(card => {
             card.addEventListener('click', () => {
                 const prompt = card.dataset.prompt;
-                const analysis = card.dataset.analysis === 'true';
+                const plan = card.dataset.plan || 'ragWithRephrasing';
                 
                 if (prompt) {
-                    isDataAnalysisEnabled = analysis;
-                    updateDataAnalysisVisuals();
+                    if (planSelect) planSelect.value = plan;
                     input.value = prompt;
                     adjustInputHeight();
                     form.requestSubmit();
@@ -142,7 +131,7 @@
         
         input.disabled = true;
         sendButton.disabled = true;
-        addMessage('user', userMessage, isDataAnalysisEnabled);
+        addMessage('user', userMessage, getCurrentPlan());
         input.value = '';
         adjustInputHeight();
         const typingIndicatorRow = showTypingIndicator();
@@ -156,7 +145,7 @@
                 body: JSON.stringify({
                     convId: conversationIdElement?.value,
                     message: userMessage,
-                    dataAnalysis: isDataAnalysisEnabled
+                    plan: getCurrentPlan()
                 })
             });
             const responseData = await response.json();

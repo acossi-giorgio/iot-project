@@ -10,8 +10,8 @@ router.post('/send', requireSession, express.json(), async (req, res) => {
   const sessionId = res.locals.sessionId || req.query.sessionId;
   try {
     logger.info(`${logPrefix} Start request received`);
-    const { message, dataAnalysis } = req.body || {};
-    const result = await handleChatMessage(sessionId, message, !!dataAnalysis);
+    const { message, plan } = req.body || {};
+    const result = await handleChatMessage(sessionId, message, plan);
     res.status(200).json(result);
   } catch (e) {
     logger.error(`${logPrefix} ${e?.name} ${e?.message}`, { stack: e?.stack });

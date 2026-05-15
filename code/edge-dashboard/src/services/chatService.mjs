@@ -19,22 +19,22 @@ async function submitInteraction(sessionId, question, answer) {
   return;
 }
 
-async function askInteraction(sessionId, question, dataAnalysis = false) {
+async function askInteraction(sessionId, question, plan = 'ragWithRephrasing') {
   const url = `${env.backendBaseUrl}/interaction/ask`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ deviceId: env.deviceId, sessionId, question, dataAnalysis: !!dataAnalysis })
+    body: JSON.stringify({ deviceId: env.deviceId, sessionId, question, plan })
   });
   if (!response.ok) throw new Error(`ask interaction failed with status ${response.status}, body: ${await response.text()}`);
   return response.json();
 }
 
-export async function addUserMessage(sessionId, content, dataAnalysis = false) {
+export async function addUserMessage(sessionId, content, plan = 'ragWithRephrasing') {
   const client = await getRedis();
-  const entry = JSON.stringify({ role: 'user', content, ts: Date.now(), dataAnalysis });
+  const entry = JSON.stringify({ role: 'user', content, ts: Date.now(), plan });
   await client.rPush(key(sessionId), entry);
 }
 
@@ -69,7 +69,7 @@ export async function deleteChat(sessionId) {
   await client.del(key(sessionId));
 }
 
-export async function handleChatMessage(sessionId, rawMessage, dataAnalysis = false) {
+export async function handleChatMessage(sessionId, rawMessage, plan = 'ragWithRephrasing') {
   const message = rawMessage.trim();
   if(!message) throw new Error('empty message');
 
@@ -78,7 +78,7 @@ export async function handleChatMessage(sessionId, rawMessage, dataAnalysis = fa
     .filter(m => m.role === 'user')
     .map(m => m.content);
 
-  await addUserMessage(sessionId, message, dataAnalysis);
+  await addUserMessage(sessionId, message, plan);
 
   let domainResult = { valid: true };
   if(env.intentDetectionEnabled) {
@@ -92,7 +92,7 @@ export async function handleChatMessage(sessionId, rawMessage, dataAnalysis = fa
     return { answer: rejectionMessage, rejected: true };
   }
   else {
-    const { answer, chunks } = await askInteraction(sessionId, message, dataAnalysis);
+    const { answer, chunks } = await askInteraction(sessionId, message, plan);
     await addBotMessage(sessionId, answer);
     return { answer, chunks };
   }
