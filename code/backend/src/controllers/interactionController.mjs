@@ -5,9 +5,9 @@ import { createInteraction, getInteractions } from "../repositories/interactions
 import { getSession } from "../repositories/sessionsRepository.mjs";
 import { getVitalsStatistics } from "../services/vitalsService.mjs";
 import { validateAskInteractionRequest, validateSubmitInteractionRequest } from "../schemas/interactionSchema.mjs";
-import { generateDataAnalysisResponse, generateChatResponse } from "../services/aiService.mjs";
+import { getPipeline } from "../services/pipelineService.mjs";
 import { getDocuments } from "../repositories/documentRepository.mjs";
-import { makeDiagnosis } from "../services/diagnosisService.mjs"; 
+import { makeDiagnosis } from "../services/diagnosisService.mjs";
 import { env } from "../config/env.mjs";
 import { logger } from "../config/logger.mjs";
 
@@ -19,7 +19,7 @@ export async function askInteractionHandler(req, res) {
         const body = req.body || {};
         const { valid, errors } = validateAskInteractionRequest(body);
         if (!valid) return res.status(400).json({ error: "Invalid request body", details: errors });
-        const { deviceId, sessionId, question, dataAnalysis } = body;
+        const { deviceId, sessionId, question, plan } = body;
         const db = await getMongoDb();
         const device = await getDevice(db, deviceId);
 
@@ -35,70 +35,68 @@ export async function askInteractionHandler(req, res) {
         const documents = await getDocuments(db);
         const sources = documents.map(doc => doc.name);
 
-        let payload = {};
-        if(dataAnalysis) {
-            logger.info(`${logPrefix} Performing Data Analysis interaction`);
+        const pipeline = getPipeline(plan);
+        if (!pipeline) {
+            logger.warn(`${logPrefix} Invalid plan: ${plan}`);
+            return res.status(400).json({ error: `Invalid plan: ${plan}` });
+        }
+
+        logger.info(`${logPrefix} Performing ${plan} pipeline interaction`);
+
+        let result;
+        let payload;
+
+        if (plan === "dataAnalysis") {
             const vitalsStatistics = await getVitalsStatistics(deviceId);
             logger.debug(`${logPrefix} vitalsStatistics: ${JSON.stringify(vitalsStatistics)}`);
             const diagnosis = makeDiagnosis(vitalsStatistics);
-            const { rephrasedQuestion, answer, chunks } = await generateDataAnalysisResponse(
-                question, 
-                sources, 
-                vitalsStatistics, 
-                interactions, 
-                diagnosis
-            );
-            
-            await createInteraction(
-                db, 
-                constant.interactionType.dataAnalysis,
-                sessionId, 
-                deviceId, 
-                question, 
-                rephrasedQuestion, 
-                answer, 
-                chunks, 
-                vitalsStatistics, 
-                diagnosis
-            );
-
-            payload = { 
-                question, 
-                rephrasedQuestion, 
-                answer, 
-                chunks, 
-                vitalsStatistics, 
-                diagnosis 
-            }
-        } else {
-            logger.info(`${logPrefix} Performing RAG interaction`);
-            const { rephrasedQuestion, answer, chunks } = await generateChatResponse(
-                question,
-                sources,
-                interactions
-            );
+            result = await pipeline(question, sources, interactions, vitalsStatistics, diagnosis);
 
             await createInteraction(
                 db,
-                constant.interactionType.rag,
+                constant.interactionType.dataAnalysis,
                 sessionId,
                 deviceId,
                 question,
-                rephrasedQuestion,
-                answer,
-                chunks,
-                null,
-                null
+                result.rephrasedQuestion ?? null,
+                result.answer,
+                result.chunks ?? null,
+                vitalsStatistics,
+                diagnosis
             );
 
             payload = {
                 question,
-                rephrasedQuestion,
-                answer,
-                chunks
+                rephrasedQuestion: result.rephrasedQuestion,
+                answer: result.answer,
+                chunks: result.chunks,
+                vitalsStatistics,
+                diagnosis,
             };
+        } else {
+            result = await pipeline(question, sources, interactions);
+
+            const interactionType =
+                plan === "chat" ? constant.interactionType.chat :
+                plan === "rag" ? constant.interactionType.rag :
+                constant.interactionType.ragWithRephrasing;
+
+            await createInteraction(
+                db,
+                interactionType,
+                sessionId,
+                deviceId,
+                question,
+                result.rephrasedQuestion ?? null,
+                result.answer,
+                result.chunks ?? null,
+                null,
+                null
+            );
+
+            payload = { question, ...result };
         }
-        
+
         logger.info(`${logPrefix} Interaction processed successfully`);
         return res.status(200).json(payload);
     } catch (err) {

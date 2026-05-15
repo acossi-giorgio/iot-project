@@ -5,8 +5,10 @@ export const constant = {
     },
     interactionType: {
         edge: "edge",
+        chat: "chat",
+        rag: "rag",
+        ragWithRephrasing: "ragWithRephrasing",
         dataAnalysis: "dataAnalysis",
-        rag: "rag"
     },
     sensorType: {
         heartRate: "hr",

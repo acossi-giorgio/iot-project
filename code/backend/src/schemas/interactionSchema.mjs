@@ -2,15 +2,17 @@ import Ajv from "ajv";
 
 const ajv = new Ajv({ allErrors: true, removeAdditional: "failing" });
 
+const VALID_PLANS = ["chat", "rag", "ragWithRephrasing", "dataAnalysis"];
+
 const askInteractionRequestValidator = ajv.compile({
     type: "object",
     additionalProperties: false,
-    required: ["deviceId", "sessionId", "question", "dataAnalysis"],
+    required: ["deviceId", "sessionId", "question", "plan"],
     properties: {
         deviceId: { type: "string" },
         sessionId: { type: "string" },
         question: { type: "string" },
-        dataAnalysis: { type: "boolean" }
+        plan: { type: "string", enum: VALID_PLANS }
     }
 });
 
