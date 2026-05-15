@@ -107,33 +107,6 @@ services:
     restart: unless-stopped
 
   # ─────────────────────────────────────────────
-  # Ollama init — pulls all models at startup
-  # Reads model names from .env, exits when done
-  # ─────────────────────────────────────────────
-
-  ollama-init:
-    image: ollama/ollama:latest
-    container_name: iot-ollama-init
-    networks:
-      - iot-network
-    env_file:
-      - .env
-      - .env.local
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "until ollama list; do echo '[ollama-init] waiting for ollama...'; sleep 3; done
-      && ollama pull ${CHAT_MODEL}
-      && ollama pull ${REWRITER_MODEL}
-      && ollama pull ${EMBEDDINGS_MODEL}
-      && ollama pull ${CLASSIFICATION_MODEL}
-      && echo '[ollama-init] all models ready'"
-    depends_on:
-      - ollama
-    restart: "no"
-
-  # ─────────────────────────────────────────────
   # Node-RED — server side
   # Processes incoming MQTT data, writes to
   # InfluxDB / MongoDB
