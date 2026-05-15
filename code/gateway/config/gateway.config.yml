@@ -44,6 +44,7 @@ pipelines:
           - action:
               serviceEndpoint: backend
               changeOrigin: true
+              stripPath: true
   dashboardPipeline:
     apiEndpoints:
       - dashboard
