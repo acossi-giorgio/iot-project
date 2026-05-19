@@ -49,14 +49,6 @@ const PROMPT_TEMPLATE = `
 
 	CONTEXT (retrieved):
 	{context}
-
-  STRICT PROHIBITIONS (READ CAREFULLY):
-  1.  **NO CITATIONS**: You must **NEVER** mention "Document 1", "The context", "The provided text", "The documents", or "retrieved information".
-  2.  **NO SUMMARIES**: Do **NOT** provide a summary of the documents if the user hasn't asked for one.
-  3.  **NO META-TALK**: Do not explain where you got your information. Present it as your own knowledge.
-  4.  **NO OPENING PHRASES**: You must **NEVER** start your response with "Based on the context provided", "According to the information", or similar phrases. Start directly with the answer.
-
-  **Reasoning**: If you perform any internal reasoning, you **MUST** enclose it within \`<think>...</think>\` tags.
 `;
 
 const llm = await getChatModel();

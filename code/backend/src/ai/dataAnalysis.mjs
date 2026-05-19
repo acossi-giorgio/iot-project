@@ -84,17 +84,6 @@ const PROMPT_TEMPLATE = `
 
 	FINAL INSTRUCTION:
 	If the USER QUESTION is empty, you MUST analyze the VITALS above. Do NOT summarize the CONTEXT.
-
-    STRICT PROHIBITIONS (READ CAREFULLY):
-    1.  **NO CITATIONS**: You must **NEVER** mention "Document 1", "The context", "The provided text", "The documents", or "retrieved information".
-    2.  **NO SUMMARIES**: Do **NOT** provide a summary of the documents if the user hasn't asked for one.
-    3.  **NO META-TALK**: Do not explain where you got your information. Present it as your own knowledge.
-    4.  **NO INVENTED QUESTIONS**: Do **NOT** say "A possible question could be...". If the user didn't ask a question, do not invent one.
-    5.  **NO TOPIC LISTS**: Do **NOT** start your response with "Key Topics", "The documents cover", or similar headers.
-
-    In case of **NO DIAGNOSIS** empthy list or Healthy diagnosis focus **ONLY** on explaining the vital parameters clearly. Do NOT invent problems.
-    
-    **Reasoning**: If you perform any internal reasoning, you **MUST** enclose it within \`<think>...</think>\` tags.
 `;
 
 const llm = await getChatModel();

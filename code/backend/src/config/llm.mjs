@@ -2,7 +2,7 @@ import { ChatOllama } from "@langchain/ollama";
 import { env } from "./env.mjs";
 
 const OLLAMA_TIMEOUT_MS = 10 * 60 * 1000;
-const NUM_CTX = 1024;
+const NUM_CTX = 2048; // max supported by the model (n_ctx_train)
 
 export async function getChatModel() {
     return new ChatOllama({

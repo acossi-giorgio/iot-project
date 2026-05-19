@@ -97,6 +97,8 @@ services:
     env_file:
       - .env
       - .env.local
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
     volumes:
       - ollama-data:/root/.ollama
     deploy:
