@@ -5,7 +5,11 @@ export function cleanRawResponse(raw) {
   let text = Array.isArray(raw) ? raw.map(c => (c?.text ?? c)).join(" ") : raw;
   if (typeof text !== "string") text = String(text ?? "");
 
+  // Strip Gemma 4 thinking blocks: <|channel>thought ... <channel|>
+  text = text.replace(/<\|channel>thought[\s\S]*?<channel\|>/gi, "");
+  // Strip Qwen3 / generic thinking blocks: <think> ... </think>
   text = text.replace(/<think>[\s\S]*?<\/think>/gi, "");
+  // Handle dangling/unclosed thinking tags
   text = text.replace(/[\s\S]*?<\/think>/gi, "");
   text = text.replace(/<think>/gi, "");
   text = text.trim();
