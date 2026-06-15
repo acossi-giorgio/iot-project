@@ -1,0 +1,175 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.21 of 2022/01/12
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+%\usepackage{color}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
+%\urlstyle{rm}
+%
+\begin{document}
+%
+\title{Streaming RAG for Live AI Assistants}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{
+Giorgio Acossi\inst{1}
+\and
+Marco Castagna\inst{1}
+\and 
+Giorgio Delzanno\inst{1}
+}
+%
+\authorrunning{F. Author et al.}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{DIBRIS
+\email{...}
+}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+We present a  IoT health monitoring platform designed to connect patients and healthcare professionals through real-time data tracking. This system utilizes a hybrid architecture that combines edge computing for local data processing with cloud-based storage and advanced analytics. Central to the platform is an AI clinical assistant that leverages large language models to interpret biometric sensors, explain medical symptoms, and provide actionable health advice. Users can interact with the technology via intuitive dashboards that display vital signs like heart rate and oxygen levels while offering automated diagnostic insights. The paper focuses on the different functionalities of the system, e.g., use of local LLM models, abilty to operate in offline modes, reliance on robust data pipelines for both routine supervision and emergency detection.
+\keywords{LLMs, Real-time data, AI assistants}
+\end{abstract}
+%
+%
+%
+\section{Introduction}
+
+Retrieval-Augmented Generation (RAG) systems have significantly improved the factual grounding capabilities of large language models by combining generative reasoning with external knowledge retrieval. However, most existing RAG architectures are designed for static or slowly changing knowledge bases, where documents are indexed offline and updated periodically. This assumption limits their applicability in real-world environments characterized by continuously evolving information streams.
+
+Many modern applications — including operational monitoring, cybersecurity, financial analytics, IoT systems, and enterprise support platforms — require AI assistants capable of accessing and reasoning over live data in real time. In these scenarios, information freshness becomes critical, as outdated or hallucinated responses may lead to incorrect decisions, operational inefficiencies, or reduced user trust.
+
+At the same time, integrating streaming data into RAG pipelines introduces several open challenges, including low-latency retrieval, continuous indexing, temporal consistency, adaptive context management, and scalability under high-frequency updates. Existing evaluation methodologies also remain largely focused on static benchmarks and do not adequately capture the requirements of real-time AI systems.
+
+This motivates the need for new retrieval architectures and orchestration strategies that enable language models to operate reliably over dynamic knowledge environments. By exploring real-time RAG systems, this work aims to contribute toward the development of grounded AI assistants that are both contextually accurate and temporally aware.
+\subsection{Research Questions}
+\begin{itemize}
+\item RQ1: What is the optimal architecture for streaming RAG?
+\item RQ2: Can RAG systems reason over evolving facts?
+\item RQ3: How should retrieval adapt to continuously changing knowledge?
+\item RQ4: Does real-time grounding reduce hallucinations?
+\end{itemize}
+\subsection{Contributions}
+This paper provides a technical architectural analysis of an hybrid IoT health platform developed at the University of Genoa.
+The platform is engineered to serve as a critical bridge between patient-side sensors and clinical supervision, facilitating a "Smarter Way to Monitor" through the integration of real-time telemetry and artificial intelligence.
+The primary objective of the system is twofold: to provide medical experts with a reliable, remote supervision framework and to offer patients an AI-driven clinical assistant capable of interpreting complex vital signs and suggesting immediate, evidence-based actions.
+
+\section{Related Work}
+
+\section{Hybrid Architecture: Edge and Cloud Synchronization}
+The platform utilizes a distributed hybrid architecture to balance the requirements of local responsiveness, safety, and centralized 
+\section{Edge Architecture (Local Processing)}
+The Edge Tier handles high-frequency data acquisition and initial processing. By utilizing the MQTT protocol, a standard for low-bandwidth medical telemetry, the system ensures efficient data transfer from the sensor layer.
+\begin{itemize}
+\item Node JS Sensor Simulator: Generates synthetic vital sign data to model clinical scenarios.
+\item Mosquitto MQTT Broker: Orchestrates edge-level ingestion.
+\item Node-RED Flows:
+\begin{itemize}
+\item Device Health: Monitors local hardware status.
+\item Data Subscriber: Ingests the stream of vitals for local processing.
+\item State Management and Local AI:
+\end{itemize}
+\item Redis Cache: Utilized for low-latency state management of high-frequency vitals, ensuring that the most recent physiological data is immediately available for local dashboards.
+\item  Local Ollama (?) Instance: Executes a quantized LLM at the edge to perform Intent Detection. This acts as a safety gatekeeper, determining if a user query is clinically "Valid" before it is escalated to the cloud, thereby reducing latency and preventing the processing of unsafe or irrelevant queries.
+Reliability: The edge configuration supports a dedicated Offline mode, allowing for continued local monitoring and dashboarding during network volatility.
+\end{itemize}
+
+\section{Cloud Architecture (Centralized Intelligence)}
+The Cloud Tier provides the computational heavy-lifting for retrieval-augmented generation and long-term data persistence.
+\begin{itemize}
+\item Node JS Gateway: The central entry point for edge-to-cloud communication via HTTP/HTTPS, managing secure authentication and traffic routing.
+\item  Node-RED Ingestion and Monitoring: Standardizes incoming data streams and facilitates the Device Monitoring flow.
+\item Mail Server: Integrated into the monitoring flow to trigger automated clinical notifications and alerts based on device or patient status.
+\item  Server-Side Ollama (MedGemma? Parametric on the Model??) Instance: Provides high-performance LLM processing for complex clinical reasoning and RAG pipelines.
+\item 
+Admin Dashboard: A centralized interface for managing global system parameters, user sessions, and hardware telemetry.
+\end{itemize}
+\section{Specialized Data Management Layer}
+The architecture employs a "polyglot persistence" strategy, selecting database engines based on the specific requirements of medical informatics.
+Database Specialization and Use Cases
+Database System
+Storage Type
+System Function
+InfluxDB
+Time-series
+Long-term persistence of high-frequency sensor vitals (e.g., HR, BP, SpO2) for trend analysis.
+MongoDB
+Document-oriented
+Management of application metadata, user profiles, and clinical session details.
+Qdrant
+Vector Search
+Storage and indexing of medical document embeddings (e.g., Oxford Handbooks) for the RAG pipeline.
+\section{Core System Workflows}
+\subsection{IoT Data Ingestion and Validation}
+Data Generation: The Sensor Simulator publishes telemetry via MQTT.
+Data Subscriber: The edge-level Node-RED flow captures the message.
+Validation and Filtering: Data is validated at the edge; valid packets are cached in Redis for immediate use.
+HTTP Transmission: Validated data is pushed to the Cloud Gateway.
+Cloud Data Ingestion: The server-side Node-RED flow receives the stream.
+Cloud Validation: Secondary validation ensures data integrity before storage.
+InfluxDB Storage: Data is committed to the time-series index for clinical review.
+\section{AI Assistant and RAG Pipeline}
+The platform utilizes Retrieval-Augmented Generation (RAG) to ensure clinical accuracy:
+Intent Detection (Edge): The local Ollama instance confirms the query is valid and clinical in nature.
+Rephrase (Cloud): The query is optimized for semantic search.
+Document Retrieval: The system queries Qdrant to retrieve context from authoritative sources, specifically the Oxford Handbook of General Practice and the Mayo Clinic Family Health Book.
+Chunk Search/Selection: Relevant medical text fragments are isolated.
+LLM Invocation: The server-side LLM processes the query against the retrieved clinical context.
+Answer Generation: A contextually grounded response is delivered to the user interface.
+\section{ML-Driven Diagnosis Workflow}
+The "Data Analysis" flow adds a layer of objective clinical grounding to the probabilistic nature of the LLM. Before the final LLM invocation, the system executes a Diagnosis Block. This serves as a Deterministic Clinical Decision Support (CDS) layer, evaluating vitals statistics (Min, Max, Mean) against medical thresholds. This ensures the AI's response is grounded in objective biological data, such as identifying a physiological state as "Tachyarrhythmia" before the LLM generates a narrative explanation.
+\section{Clinical Dashboard and Simulation Analysis}
+The system provides distinct interfaces: a Patient Dashboard for vitals visualization and chat, and an Expert Dashboard for session management and diagnostic oversight.
+During a "Heart Attack" simulation, the system demonstrated its diagnostic precision by identifying several critical abnormalities compared to a "Healthy" baseline:
+Heart Rate: 155–166 bpm (Severely elevated/Tachycardia).
+Blood Pressure: 57/84 mmHg (Critically low/Hypotension).
+Oxygen Saturation: 90–91% (Hypoxemia).
+Respiratory Rate: 27–29 rpm (Tachypnea/Respiratory distress).
+The AI assistant, informed by the CDS Diagnosis Block, correctly identified these patterns as consistent with Myocardial Infarction and Respiratory Failure, alerting the user to a life-threatening cardiovascular emergency and advising immediate medical intervention.
+\section{Future Development Roadmap}
+The strategic technical roadmap focuses on increasing the autonomy and security of the platform:
+Advanced AI: Implementation of domain-specific LLM Fine-Tuning, Graph RAG for mapping complex medical relationships, and the deployment of Autonomous Agents.
+Enhanced Diagnostics: Deepening the integration of ML-driven autonomous diagnosis and transitioning from simulated data to real-world medical device integration.
+Infrastructure & Security: Migration to Kubernetes for robust container orchestration and scaling, alongside advanced security hardening to meet international health data standards.
+7. Conclusion
+By integrating edge computing for low-latency safety and intent detection with a cloud-based RAG pipeline grounded in authoritative medical literature, this platform provides a robust framework for modern telehealth. The use of deterministic CDS layers alongside probabilistic LLMs represents a significant advancement in clinical safety. Developed at DIBRIS, University of Genoa, this architecture serves as a scalable model for the future of AI-driven remote clinical assistance.
+\begin{thebibliography}{8}
+\bibitem{ref_article1}
+Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+
+\bibitem{ref_lncs1}
+Author, F., Author, S.: Title of a proceedings paper. In: Editor,
+F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
+Springer, Heidelberg (2016). \doi{10.10007/1234567890}
+
+\bibitem{ref_book1}
+Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
+Location (1999)
+
+\bibitem{ref_proc1}
+Author, A.-B.: Contribution title. In: 9th International Proceedings
+on Proceedings, pp. 1--2. Publisher, Location (2010)
+
+\bibitem{ref_url1}
+LNCS Homepage, \url{http://www.springer.com/lncs}, last accessed 2023/10/25
+\end{thebibliography}
+\end{document}
