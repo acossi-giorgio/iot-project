@@ -21,6 +21,7 @@
 %\urlstyle{rm}
 %
 \begin{document}
+\raggedbottom
 %
 \title{An Edge--Cloud RAG Architecture for Real-Time Health Monitoring}
 %
@@ -121,7 +122,7 @@ The Cloud Tier hosts the computationally intensive and stateful parts of the pla
 The platform coordinates three main workflows across the two tiers: IoT telemetry ingestion, document-based RAG, and RAG enriched with rule-based analysis.
 
 \subsection{IoT Data Ingestion Workflow}
-Sensor telemetry is collected and validated at the edge before being forwarded to the cloud for persistent storage. Validation at both tiers reduces the likelihood that malformed measurements reach the time-series database.
+This workflow transfers sensor telemetry from the edge to the cloud while keeping the latest valid readings available locally.
 
 \begin{figure}[H]
 \centering
@@ -130,16 +131,10 @@ Sensor telemetry is collected and validated at the edge before being forwarded t
 \label{fig:iotflow}
 \end{figure}
 
-\begin{itemize}
-\item \textbf{Data Generation:} The Sensor Simulator publishes synthetic vital sign telemetry over MQTT.
-\item \textbf{Edge Subscription and Validation:} The Node-RED Data Subscriber flow captures incoming packets, applies validation rules, and caches valid readings in Redis for immediate dashboard use.
-\item \textbf{Cloud Forwarding:} Validated packets are transmitted via HTTPS to the Cloud Gateway.
-\item \textbf{Cloud Ingestion and Validation:} The server-side Node-RED flow applies a secondary validation pass to enforce data integrity before persistence.
-\item \textbf{Persistent Storage:} Clean data is committed to InfluxDB for long-term trend analysis and clinical review.
-\end{itemize}
+The \textbf{Data Generator} publishes simulated measurements over MQTT, and the \textbf{Data Subscriber} forwards them to \textbf{Validation \& Filtering}. Valid readings are cached in \textbf{Redis} for local access and sent over HTTP to the cloud. The \textbf{Data Ingestion} and \textbf{Validation} stages process the incoming telemetry before storing it in \textbf{InfluxDB} for historical analysis.
 
 \subsection{AI Assistant and RAG Pipeline}
-This workflow implements a conventional document-based RAG pipeline. Its knowledge base consists of biomedical reference texts indexed in Qdrant. The pipeline does not analyze live sensor data; it answers patient queries by retrieving relevant passages and placing them in the generation context. Queries are first screened at the edge for clinical relevance and are then routed to the cloud for retrieval and generation. This separation is important: RAG improves the informational basis of an answer, but it does not independently establish the patient's current clinical state.
+This workflow implements a conventional document-based RAG pipeline. Its knowledge base consists of biomedical reference texts indexed in Qdrant. Rather than analyzing live sensor data, it supports patient queries by retrieving relevant passages and supplying them as context to the language model. Queries are screened at the edge for clinical relevance before retrieval and generation take place in the cloud. RAG therefore improves the informational basis of an answer, but does not independently determine the patient's current clinical state.
 
 \begin{figure}[H]
 \centering
@@ -148,16 +143,10 @@ This workflow implements a conventional document-based RAG pipeline. Its knowled
 \label{fig:chatflow}
 \end{figure}
 
-\begin{itemize}
-\item \textbf{Intent Detection (Edge):} The local edge Ollama instance acts as a safety gatekeeper, confirming the query is clinically relevant before it is escalated to the cloud.
-\item \textbf{Query Rephrasing (Cloud):} The query is rewritten to improve semantic matching against the indexed documents.
-\item \textbf{Document Retrieval:} Qdrant returns the most relevant text fragments from the pre-loaded biomedical knowledge base.
-\item \textbf{LLM Invocation:} The cloud Ollama instance generates a response conditioned on the retrieved passages and the patient's original query.
-\item \textbf{Answer Delivery:} The grounded response is streamed to the patient dashboard.
-\end{itemize}
+The pipeline starts when a \textbf{User Query} reaches the edge-level \textbf{Intent Detection} component. The resulting \textbf{If Valid} decision acts as a gate: requests outside the supported clinical scope are sent to \textbf{Block}, whereas valid requests are forwarded to the cloud. The \textbf{Rephrase} step rewrites the query into a form better suited to semantic retrieval, after which \textbf{Document Retrieve} identifies relevant biomedical documents in Qdrant. The \textbf{For each document} stage processes every retrieved document through \textbf{Chunk Search}; the resulting passages converge at \textbf{Chunk Selection}, which retains the most relevant context. The \textbf{Chat Assistant Prompt} then combines these passages with the original user request and the assistant instructions. Finally, \textbf{LLM Invoke} generates the grounded \textbf{Answer} returned to the patient dashboard. This workflow uses the indexed biomedical corpus but does not incorporate live sensor readings; retrieval improves the informational basis of the response without establishing the patient's current clinical state.
 
 \subsection{Rule-Based Diagnosis Workflow}
-This workflow extends the document-based pipeline with a deterministic diagnosis block executed before LLM invocation. The block aggregates sensor measurements over a configurable trailing window, set to five minutes in the prototype, and computes the minimum, maximum, and mean for each metric. Aggregation reduces the influence of isolated fluctuations while retaining a recent view of the simulated patient's state. A rule engine compares these statistics with configured clinical thresholds and assigns a structured label, such as \textit{Tachyarrhythmia} or \textit{Hypoxemia}. The label and retrieved passages are combined in an enriched prompt. The model therefore receives both explanatory biomedical material and a concise representation of recent measurements. These labels are decision-support inputs within the prototype and should not be interpreted as clinically validated diagnoses.
+This workflow extends the document-based RAG pipeline with a deterministic analysis of recent telemetry. Measurements from a configurable trailing window, set to five minutes in the prototype, are summarized and compared with predefined clinical thresholds. The resulting label is combined with retrieved biomedical passages, allowing the model to consider both general medical information and a concise representation of the patient's recent state. These labels serve only as decision-support inputs within the prototype and are not clinically validated diagnoses.
 
 \begin{figure}[H]
 \centering
@@ -166,15 +155,7 @@ This workflow extends the document-based pipeline with a deterministic diagnosis
 \label{fig:dataanalystflow}
 \end{figure}
 
-\begin{itemize}
-\item \textbf{Intent Detection (Edge):} As in the standard RAG pipeline, the local Ollama instance screens the query for clinical relevance before escalation.
-\item \textbf{Query Rephrasing (Cloud):} The query is rewritten to improve semantic matching against the indexed documents.
-\item \textbf{Vitals Aggregation:} In parallel, sensor readings from the last five minutes are retrieved from InfluxDB and summarized into min, max, and mean values per metric.
-\item \textbf{Diagnosis Labeling:} The rule engine evaluates the aggregated statistics against configured reference ranges and assigns a structured label with severity metadata.
-\item \textbf{Document Retrieval:} Qdrant returns the most relevant text fragments from the pre-loaded biomedical knowledge base.
-\item \textbf{Data Analysis Prompt:} The diagnosis label and the retrieved passages are combined into a single enriched prompt for the LLM.
-\item \textbf{LLM Invocation and Answer Delivery:} The cloud Ollama instance generates a response conditioned on both sources and streams it back to the patient dashboard.
-\end{itemize}
+The rule-based workflow retains the same initial control path: \textbf{User Query}, \textbf{Intent Detection}, and \textbf{If Valid} either reject an unsupported request through \textbf{Block} or pass it to \textbf{Rephrase}. It then introduces \textbf{Vitals Statistic}, which retrieves measurements from the preceding five minutes and computes the minimum, maximum, and mean for each metric. The \textbf{Diagnosis} step compares these aggregated values with configured thresholds and produces a structured clinical label, such as \textit{Tachyarrhythmia} or \textit{Hypoxemia}. Processing then continues with \textbf{Document Retrieve}; \textbf{For each document} initiates the corresponding \textbf{Chunk Search} operations, and \textbf{Chunk Selection} chooses the passages most relevant to the query. Unlike the standard assistant pipeline, \textbf{Data Analysis Prompt} combines the selected biomedical passages with the rule-based label and recent vital-sign statistics. \textbf{LLM Invoke} uses this enriched context to produce the final \textbf{Answer}. The label is a decision-support input generated by the prototype and should not be interpreted as a clinically validated diagnosis.
 
 \section{Clinical Dashboard and Simulation Analysis}
 The platform provides two interfaces for distinct roles: a patient dashboard at the edge and an expert dashboard in the cloud.
@@ -215,22 +196,20 @@ The Expert Dashboard supports healthcare professionals and system administrators
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=1.0\textwidth]{expert-session-details.png}
+\includegraphics[width=0.9\textwidth]{expert-session-details.png}
 \caption{Expert Dashboard: Detailed Session Vitals}
 \label{fig:expert_session_details}
 \end{figure}
-
-\section{Limitations and Future Work}
-The prototype currently uses simulated sensor data, a single deployed edge node, deterministic thresholds, and a biomedical corpus that is indexed offline. Its response quality has been assessed qualitatively during development, but no controlled comparison of RAG and non-RAG outputs or evaluation with clinicians has yet been conducted. Security, privacy, failure recovery, and performance under concurrent multi-patient workloads also require systematic evaluation. Future work will therefore consider the following directions:
+\section{Future Developments}
+The current implementation provides a functional prototype that can be extended in several directions. Future developments will focus on improving the clinical specialization of the AI components, integrating the platform with real devices, and strengthening its deployment architecture. The main areas under consideration are the following:
 
 \begin{itemize}
-\item \textbf{Quantitative RAG Evaluation:} Compare answers generated with and without retrieval using measures of relevance, factual consistency, source support, latency, and clinician judgment.
-\item \textbf{Knowledge-Base Maintenance:} Introduce document provenance, versioning, and update procedures so that retrieved medical information remains traceable and current.
-\item \textbf{Graph RAG:} Evaluate knowledge graphs for representing and retrieving relationships that are difficult to capture through vector similarity alone.
-\item \textbf{Diagnostic Models:} Compare the current rule-based component with validated machine-learning approaches while retaining interpretable safety constraints.
-\item \textbf{Real Devices and Clinical Validation:} Integrate certified medical devices and conduct appropriately supervised studies in realistic settings.
-\item \textbf{Security and Privacy:} Add authentication, authorization, encryption, auditing, and data-governance controls appropriate for health information.
-\item \textbf{Scalability and Resilience:} Evaluate container orchestration, high availability, and failure recovery under concurrent multi-patient workloads.
+\item \textbf{LLM Fine-Tuning:} Adapt the language models to the medical domain to improve terminology, response relevance, and consistency.
+\item \textbf{Graph RAG:} Introduce knowledge graphs to represent and retrieve complex relationships between symptoms, conditions, measurements, and treatments.
+\item \textbf{Autonomous Agents:} Explore agents capable of performing controlled multi-step reasoning and assisting with predefined monitoring tasks.
+\item \textbf{Machine-Learning-Based Diagnosis:} Extend the current deterministic rule engine with predictive models, while retaining interpretable constraints and human oversight.
+\item \textbf{Real-Device Integration:} Replace the sensor simulator with interfaces for real medical and wearable devices.
+\item \textbf{Clinical Validation:} Conduct supervised studies with healthcare professionals to evaluate response quality and system behavior in realistic scenarios.
 \end{itemize}
 
 \section{Conclusion}
