@@ -22,7 +22,7 @@
 %
 \begin{document}
 %
-\title{Streaming RAG for Live AI Assistants}
+\title{An Edge--Cloud RAG Architecture for Real-Time Health Monitoring}
 %
 %\titlerunning{Abbreviated paper title}
 % If the paper title is too long for the running head, you can set
@@ -36,7 +36,7 @@ Marco Castagna\inst{1}
 Giorgio Delzanno\inst{1}
 }
 %
-\authorrunning{F. Author et al.}
+\authorrunning{G. Acossi et al.}
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
@@ -47,40 +47,36 @@ Giorgio Delzanno\inst{1}
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-We present a  IoT health monitoring platform designed to connect patients and healthcare professionals through real-time data tracking. This system utilizes a hybrid architecture that combines edge computing for local data processing with cloud based storage and analytics. Central to the platform is an AI clinical assistant that leverages on local large language models to interpret biometric data, explain medical symptoms, and provide actionable health advice. Users can interact with the system via dashboards that display vital signs like heart rate and oxygen levels while offering diagnostic insights by means a chat. The paper focuses on the different functionalities of the system, e.g., use of local LLM models, abilty to operate in offline modes, real time data streaming end analysis.
+This paper presents an IoT health-monitoring platform that connects patients and healthcare professionals through real-time telemetry and AI-assisted interaction. The platform adopts a hybrid architecture: edge services handle data acquisition, validation, caching, and offline operation, while cloud services provide persistent storage, centralized monitoring, and Retrieval-Augmented Generation (RAG). The clinical assistant retrieves relevant passages from a biomedical knowledge base and combines them with patient queries; an additional rule-based workflow enriches this context with labels derived from recent vital-sign measurements. Separate dashboards support patients and clinical experts. The prototype illustrates how RAG can improve the relevance and grounding of responses by supplying the language model with domain-specific evidence, while deterministic analysis provides an explicit link to the patient's current physiological state. The system is intended as a research prototype and not as a substitute for professional medical assessment.
 
-\keywords{Local LLMs, Real-time data, AI assistants}
+\keywords{Retrieval-Augmented Generation, edge computing, IoT, health monitoring, large language models}
 \end{abstract}
 %
 %
 %
 \section{Introduction}
 
-Retrieval-Augmented Generation (RAG) systems have significantly improved the factual grounding capabilities of large language models by combining generative reasoning with external knowledge retrieval. However, most existing RAG architectures are designed for static or slowly changing knowledge bases, where documents are indexed offline and updated periodically. This assumption limits their applicability in real-world environments characterized by continuously evolving information streams.
+Retrieval-Augmented Generation (RAG) combines language-model generation with the retrieval of external knowledge. By placing relevant source material in the model context, RAG can produce responses that are more closely grounded in domain-specific information than responses generated from model parameters alone. Most conventional RAG systems, however, operate on static or slowly changing document collections. Health-monitoring applications must also account for a second source of context: physiological measurements that change continuously.
 
-Many modern applications require AI assistants capable of accessing and reasoning over live data in real time. In these scenarios, information freshness becomes critical, as outdated or hallucinated responses may lead to incorrect decisions, operational inefficiencies, or reduced user trust.
+In this setting, information freshness is especially important. A response based only on biomedical literature may be generally relevant yet fail to reflect the patient's current condition. Conversely, raw sensor values provide timely observations but do not, by themselves, supply the explanatory context needed for a useful answer. Combining these sources requires an architecture that preserves low-latency local operation while supporting centralized retrieval and long-term analysis.
 
-At the same time, integrating streaming data into RAG pipelines introduces several open challenges, including low-latency retrieval, continuous indexing, temporal consistency, adaptive context management, and scalability under high-frequency updates. Existing evaluation methodologies also remain largely focused on static benchmarks and do not adequately capture the requirements of real-time AI systems.
+The proposed prototype addresses this problem through a hybrid edge--cloud design. Sensor telemetry is validated and cached at the edge, then forwarded to the cloud for persistence. The cloud hosts a document-based RAG pipeline, while a deterministic diagnosis block summarizes recent measurements and assigns a structured clinical label. The retrieved passages and the label are then provided to the language model as complementary context.
 
-This motivates the need for new retrieval architectures and orchestration strategies that enable language models to operate reliably over dynamic knowledge environments. By exploring real-time RAG systems, this work aims to contribute toward the development of grounded AI assistants that are both contextually accurate and temporally aware.
+This work examines the architecture and behavior of the resulting system. Its scope is limited to a functional prototype based on simulated sensor data; it does not claim clinical validation or autonomous diagnostic capability.
 
 \subsection{Research Questions}
 
 \begin{itemize}
-\item RQ1: What is the optimal architecture for streaming RAG?
-\item RQ2: Can RAG systems reason over evolving facts?
-\item RQ3: How should retrieval adapt to continuously changing knowledge?
+\item RQ1: How can edge and cloud components be organized to support low-latency monitoring and RAG-assisted interaction?
+\item RQ2: How can static biomedical knowledge and recent sensor measurements be combined in the context supplied to a language model?
+\item RQ3: What operational trade-offs emerge between local availability, centralized processing, and response grounding?
 
 \end{itemize}
 \subsection{Contributions}
-This paper provides a technical architectural analysis of an hybrid IoT health platform developed at the University of Genoa.
-The platform is engineered to serve as a critical bridge between patient-side sensors and clinical supervision, facilitating a "Smarter Way to Monitor" through the integration of real-time telemetry and artificial intelligence.
-The primary objective of the system is twofold: to provide medical experts with a reliable, remote supervision framework and to offer patients an AI-driven clinical assistant capable of interpreting complex vital signs and suggesting immediate, evidence-based actions.
-
-\section{Related Work}
+This paper makes three main contributions. First, it describes a hybrid IoT architecture that separates latency-sensitive edge functions from storage- and computation-intensive cloud services. Second, it presents two complementary assistant workflows: a conventional document-based RAG pipeline and an enriched pipeline that incorporates a deterministic analysis of recent vital signs. Third, it discusses the operational benefits and limitations observed in a prototype that supports local monitoring during network outages and centralized supervision across multiple edge nodes.
 
 \section{Hybrid Architecture Overview}
-The platform adopts a distributed hybrid architecture that separates local responsiveness from centralized intelligence across two primary tiers: the \textbf{Edge Tier} and the \textbf{Cloud Tier}. The current deployment includes a single edge node serving one patient, but the architecture is explicitly designed for horizontal scalability: multiple independent edge nodes can be registered against the same cloud backend, each monitoring a distinct patient and forwarding telemetry through the shared gateway. This allows the system to grow from a single-patient prototype to a multi-patient clinical deployment without architectural changes.
+The platform adopts a distributed architecture organized into two tiers: the \textbf{Edge Tier}, which prioritizes responsiveness and local availability, and the \textbf{Cloud Tier}, which provides centralized storage and computation. The current deployment contains one edge node serving one patient. The design nevertheless allows multiple independent edge nodes to register with the same cloud backend, each monitoring a different patient and forwarding telemetry through a shared gateway. This supports horizontal expansion without changing the main architectural components, although scalability under production workloads remains to be evaluated.
 
 
 \begin{figure}[H]
@@ -91,26 +87,26 @@ The platform adopts a distributed hybrid architecture that separates local respo
 \end{figure}
 
 \section{Edge Tier: Local Processing and Ingestion}
-The Edge Tier serves as the first processing layer of the platform, handling high-frequency data acquisition, local validation, and direct patient interaction. Sensor readings are filtered and cached locally for immediate use, and simultaneously forwarded to the cloud tier. An integrated AI assistant dashboard allows the patient to query clinical insights in real time, with offline mode support when network connectivity is unavailable. The tier comprises the following components:
+The Edge Tier is the platform's first processing layer. It handles high-frequency data acquisition, local validation, and patient interaction. Sensor readings are filtered and cached locally for immediate use while also being forwarded to the cloud. The patient dashboard continues to display locally cached measurements when network connectivity is unavailable. Cloud-dependent RAG responses, however, require connectivity. The tier comprises the following components:
 
 \begin{itemize}
 \item \textbf{Node.js Sensor Simulator:} Generates synthetic vital sign data to model clinical scenarios, including healthy baselines and critical events such as cardiac arrest.
-\item \textbf{Mosquitto MQTT Broker:} Acts as the message broker that receiving and distributing data published by the sensor simulator to downstream subscribers.
+\item \textbf{Mosquitto MQTT Broker:} Receives data published by the sensor simulator and distributes them to downstream subscribers.
 \item \textbf{Node-RED Device Health Flow:} Monitors the operational status of connected sensors and devices, detecting and reporting faults or connectivity anomalies.
 \item \textbf{Node-RED Data Subscriber Flow:} Subscribes to the MQTT telemetry stream, validates incoming packets, and forwards them both to the local Redis cache and to the cloud gateway.
 \item \textbf{Redis Cache:} Provides state management for vital signs, ensuring that the most recent physiological readings are immediately available to the local dashboard.
-\item \textbf{Node.js User Dashboard:} Renders real-time patient vitals and exposes the AI assistant chat interface, operating directly against the local Redis cache to support the offline mode.
+\item \textbf{Node.js User Dashboard:} Displays real-time patient vitals and exposes the AI assistant chat interface. It reads from the local Redis cache so that vital-sign monitoring remains available offline.
 \item \textbf{Local Ollama Instance:} Executes a local LLM at the edge to perform intent detection, acting as a safety gatekeeper that determines whether a user query is clinically relevant before escalating it to the cloud, thereby reducing latency and filtering unsafe or out-of-scope requests.
 \end{itemize}
 
-The edge configuration additionally supports a dedicated offline mode, enabling continued local monitoring and dashboarding during periods of network unavailability.
+This arrangement enables continued local monitoring during periods of network unavailability, although cloud-hosted assistant functions are temporarily unavailable.
 
 \section{Cloud Tier: Centralized Intelligence}
-The Cloud Tier concentrates the computationally intensive and stateful responsibilities of the platform. It receives validated telemetry from the edge and persists it to specialized databases for long-term trend analysis and clinical review. It exposes a REST API consumed by both the patient-facing dashboard and the AI assistant, hosts the full RAG pipeline for grounded clinical response generation, and coordinates device health monitoring with automated alert notifications to healthcare personnel. The tier comprises the following components:
+The Cloud Tier hosts the computationally intensive and stateful parts of the platform. It receives validated telemetry from the edge and stores it in specialized databases for trend analysis and clinical review. It also exposes the REST API, executes the complete RAG pipeline, and coordinates device monitoring and alert notifications. The tier comprises the following components:
 
 \begin{itemize}
-\item \textbf{Node.js Gateway:} The central entry point for edge-to-cloud communication via HTTPS, responsible for request validation, and traffic routing to downstream services.
-\item \textbf{Node.js Backend:} The core application server that implements the business logic end exposes the REST API consumed by dashboards and the AI assistant.
+\item \textbf{Node.js Gateway:} Serves as the central entry point for edge-to-cloud communication over HTTPS and performs request validation and traffic routing.
+\item \textbf{Node.js Backend:} Implements the application logic and exposes the REST API consumed by the dashboards and AI assistant.
 \item \textbf{Node-RED Data Ingestion:} Standardizes incoming telemetry streams from the edge before committing them to the time-series database.
 \item \textbf{Node-RED Device Monitoring:} Orchestrates the device health-state tracking flow and triggers alert notifications when anomalous conditions are detected.
 \item \textbf{Node-RED Admin Dashboard:} Provides a dedicated monitoring interface for system administrators, enabling real-time visibility into data flows and service health.
@@ -122,10 +118,10 @@ The Cloud Tier concentrates the computationally intensive and stateful responsib
 
 
 \section{System Workflows}
-The platform orchestrates three primary data flows that span both tiers: the IoT telemetry ingestion pipeline, the AI assistant RAG pipeline, and the rule-based diagnosis workflow. Each flow is described below.
+The platform coordinates three main workflows across the two tiers: IoT telemetry ingestion, document-based RAG, and RAG enriched with rule-based analysis.
 
 \subsection{IoT Data Ingestion Workflow}
-Sensor telemetry is collected at the edge, validated locally, and progressively forwarded to the cloud for persistent storage. The flow ensures that only well-formed data reaches the time-series database, with a dual-validation stage at both tiers.
+Sensor telemetry is collected and validated at the edge before being forwarded to the cloud for persistent storage. Validation at both tiers reduces the likelihood that malformed measurements reach the time-series database.
 
 \begin{figure}[H]
 \centering
@@ -143,10 +139,7 @@ Sensor telemetry is collected at the edge, validated locally, and progressively 
 \end{itemize}
 
 \subsection{AI Assistant and RAG Pipeline}
-This workflow implements a classical document-based RAG pipeline. 
-The knowledge base consists of biomedical reference texts pre-loaded into the Qdrant vector store. 
-This pipeline does not analyse live sensor data: its sole purpose is to answer patient queries by retrieving relevant passages from the indexed literature and generating evidence-grounded advice. 
-Patient queries are first screened at the edge for clinical relevance, then routed to the cloud where the retrieval and generation steps are executed.
+This workflow implements a conventional document-based RAG pipeline. Its knowledge base consists of biomedical reference texts indexed in Qdrant. The pipeline does not analyze live sensor data; it answers patient queries by retrieving relevant passages and placing them in the generation context. Queries are first screened at the edge for clinical relevance and are then routed to the cloud for retrieval and generation. This separation is important: RAG improves the informational basis of an answer, but it does not independently establish the patient's current clinical state.
 
 \begin{figure}[H]
 \centering
@@ -157,14 +150,14 @@ Patient queries are first screened at the edge for clinical relevance, then rout
 
 \begin{itemize}
 \item \textbf{Intent Detection (Edge):} The local edge Ollama instance acts as a safety gatekeeper, confirming the query is clinically relevant before it is escalated to the cloud.
-\item \textbf{Query Rephrasing (Cloud):} The query is rewritten to maximise semantic similarity against the indexed documents.
+\item \textbf{Query Rephrasing (Cloud):} The query is rewritten to improve semantic matching against the indexed documents.
 \item \textbf{Document Retrieval:} Qdrant returns the most relevant text fragments from the pre-loaded biomedical knowledge base.
-\item \textbf{LLM Invocation:} The cloud Ollama instance generates a response conditioned on both the retrieved documents and the patient's original query.
-\item \textbf{Answer Delivery:} The evidence-grounded response is streamed back to the patient dashboard.
+\item \textbf{LLM Invocation:} The cloud Ollama instance generates a response conditioned on the retrieved passages and the patient's original query.
+\item \textbf{Answer Delivery:} The grounded response is streamed to the patient dashboard.
 \end{itemize}
 
 \subsection{Rule-Based Diagnosis Workflow}
-This workflow extends the standard RAG pipeline with a deterministic Diagnosis Block inserted before the LLM invocation. Rather than relying on a single instantaneous reading, the block aggregates sensor measurements collected over a configurable trailing window — set to five minutes in the current deployment — and computes per-metric statistics (min, max, mean). This window is long enough to smooth transient noise yet short enough to reflect the patient's current clinical state. The resulting statistics are evaluated against established medical thresholds by a rule engine, which assigns a structured clinical label (e.g., \textit{Tachyarrhythmia}, \textit{Hypoxemia}). This label is then combined with the retrieved document context into a single enriched prompt, ensuring the LLM response is simultaneously grounded in authoritative literature and in the patient's objective physiological state.
+This workflow extends the document-based pipeline with a deterministic diagnosis block executed before LLM invocation. The block aggregates sensor measurements over a configurable trailing window, set to five minutes in the prototype, and computes the minimum, maximum, and mean for each metric. Aggregation reduces the influence of isolated fluctuations while retaining a recent view of the simulated patient's state. A rule engine compares these statistics with configured clinical thresholds and assigns a structured label, such as \textit{Tachyarrhythmia} or \textit{Hypoxemia}. The label and retrieved passages are combined in an enriched prompt. The model therefore receives both explanatory biomedical material and a concise representation of recent measurements. These labels are decision-support inputs within the prototype and should not be interpreted as clinically validated diagnoses.
 
 \begin{figure}[H]
 \centering
@@ -175,19 +168,19 @@ This workflow extends the standard RAG pipeline with a deterministic Diagnosis B
 
 \begin{itemize}
 \item \textbf{Intent Detection (Edge):} As in the standard RAG pipeline, the local Ollama instance screens the query for clinical relevance before escalation.
-\item \textbf{Query Rephrasing (Cloud):} The query is rewritten to maximise semantic similarity against the indexed documents.
+\item \textbf{Query Rephrasing (Cloud):} The query is rewritten to improve semantic matching against the indexed documents.
 \item \textbf{Vitals Aggregation:} In parallel, sensor readings from the last five minutes are retrieved from InfluxDB and summarized into min, max, and mean values per metric.
-\item \textbf{Diagnosis Labelling:} The rule engine evaluates the aggregated statistics against clinical reference ranges and assigns a structured label with severity metadata.
+\item \textbf{Diagnosis Labeling:} The rule engine evaluates the aggregated statistics against configured reference ranges and assigns a structured label with severity metadata.
 \item \textbf{Document Retrieval:} Qdrant returns the most relevant text fragments from the pre-loaded biomedical knowledge base.
 \item \textbf{Data Analysis Prompt:} The diagnosis label and the retrieved passages are combined into a single enriched prompt for the LLM.
 \item \textbf{LLM Invocation and Answer Delivery:} The cloud Ollama instance generates a response conditioned on both sources and streams it back to the patient dashboard.
 \end{itemize}
 
 \section{Clinical Dashboard and Simulation Analysis}
-The platform exposes two distinct user interfaces tailored to their respective roles and deployment tiers: a patient-facing dashboard running at the edge, and an expert dashboard hosted in the cloud.
+The platform provides two interfaces for distinct roles: a patient dashboard at the edge and an expert dashboard in the cloud.
 
 \subsection{Patient Dashboard}
-The Patient Dashboard runs on the edge node and serves as the primary interface for the monitored patient. It reads vital signs directly from the local Redis cache, enabling real-time visualization of heart rate, blood pressure, oxygen saturation, and respiratory rate even during cloud connectivity loss. The same interface exposes the AI assistant chat, through which the patient can submit clinical queries and receive evidence-grounded responses generated by the RAG pipeline.
+The Patient Dashboard is the primary interface for the monitored patient. It reads vital signs directly from the local Redis cache and displays heart rate, blood pressure, oxygen saturation, and respiratory rate even when cloud connectivity is lost. When the cloud is reachable, the same interface provides access to the AI assistant and its RAG-generated responses.
 
 \begin{figure}[H]
 \centering
@@ -204,7 +197,7 @@ The Patient Dashboard runs on the edge node and serves as the primary interface 
 \end{figure}
 
 \subsection{Expert Dashboard}
-The Expert Dashboard is hosted in the cloud and targets healthcare professionals and system administrators. It provides three main views: a device telemetry panel listing all registered edge nodes and their connectivity status, a session management panel enumerating active and historical patient monitoring sessions, and a session detail view that streams live vitals for a selected patient alongside the full interaction history. This separation allows clinical staff to oversee multiple patients simultaneously and intervene when anomalous conditions are flagged.
+The Expert Dashboard supports healthcare professionals and system administrators. It contains a device panel showing registered edge nodes and their connectivity status, a panel for active and historical monitoring sessions, and a detailed view with live vital signs and interaction history for a selected patient. Together, these views provide a centralized overview of multiple edge nodes and highlight conditions flagged by the monitoring logic.
 
 \begin{figure}[H]
 \centering
@@ -227,40 +220,23 @@ The Expert Dashboard is hosted in the cloud and targets healthcare professionals
 \label{fig:expert_session_details}
 \end{figure}
 
-\section{Future Developments (Evolutive)}
-The future evolutions may include:
+\section{Limitations and Future Work}
+The prototype currently uses simulated sensor data, a single deployed edge node, deterministic thresholds, and a biomedical corpus that is indexed offline. Its response quality has been assessed qualitatively during development, but no controlled comparison of RAG and non-RAG outputs or evaluation with clinicians has yet been conducted. Security, privacy, failure recovery, and performance under concurrent multi-patient workloads also require systematic evaluation. Future work will therefore consider the following directions:
 
 \begin{itemize}
-\item \textbf{LLM Fine Tuning:} Adapting language models specifically for the medical domain to improve response precision.
-\item \textbf{Graph RAG:} Utilizing knowledge graphs to map and retrieve complex medical relationships more effectively than standard vector search.
-\item \textbf{Autonomous Agent:} Deploying AI agents capable of taking autonomous actions or conducting multi-step reasoning.
-\item \textbf{ML Driven Diagnosis:} Transitioning from the current deterministic, rule-based CDS to advanced Machine Learning models for predictive diagnostics.
-\item \textbf{Real Device:} Replacing the sensor simulator with integration for real-world medical devices.
-\item \textbf{Clinical Validation:} Conducting pilot studies to evaluate the platform's effectiveness in real clinical settings.
-\item \textbf{Security Improvement:} Hardening the platform to meet strict international health data privacy standards.
-\item \textbf{Kubernetes:} Migrating to Kubernetes for robust container orchestration, high availability, and dynamic scaling.
+\item \textbf{Quantitative RAG Evaluation:} Compare answers generated with and without retrieval using measures of relevance, factual consistency, source support, latency, and clinician judgment.
+\item \textbf{Knowledge-Base Maintenance:} Introduce document provenance, versioning, and update procedures so that retrieved medical information remains traceable and current.
+\item \textbf{Graph RAG:} Evaluate knowledge graphs for representing and retrieving relationships that are difficult to capture through vector similarity alone.
+\item \textbf{Diagnostic Models:} Compare the current rule-based component with validated machine-learning approaches while retaining interpretable safety constraints.
+\item \textbf{Real Devices and Clinical Validation:} Integrate certified medical devices and conduct appropriately supervised studies in realistic settings.
+\item \textbf{Security and Privacy:} Add authentication, authorization, encryption, auditing, and data-governance controls appropriate for health information.
+\item \textbf{Scalability and Resilience:} Evaluate container orchestration, high availability, and failure recovery under concurrent multi-patient workloads.
 \end{itemize}
 
 \section{Conclusion}
-By integrating edge computing for low-latency safety and intent detection with a cloud-based RAG pipeline grounded in authoritative medical literature, this platform provides a robust framework for modern telehealth. The use of deterministic CDS layers alongside probabilistic LLMs represents a significant advancement in clinical safety. Developed at DIBRIS, University of Genoa, this architecture serves as a scalable model for the future of AI-driven remote clinical assistance.
-\begin{thebibliography}{8}
-\bibitem{ref_article1}
-Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+This paper presented a hybrid edge--cloud platform for real-time health monitoring and AI-assisted patient interaction. The edge tier validates and caches telemetry, supports continuous local visualization, and screens user queries. The cloud tier stores historical data, provides centralized supervision, and executes two assistant workflows: document-based RAG and an enriched variant that also incorporates rule-based summaries of recent vital signs.
 
-\bibitem{ref_lncs1}
-Author, F., Author, S.: Title of a proceedings paper. In: Editor,
-F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
-Springer, Heidelberg (2016). \doi{10.10007/1234567890}
+The prototype indicates that retrieval can improve response quality by giving the language model relevant biomedical context instead of relying exclusively on knowledge encoded in its parameters. In the enriched workflow, the deterministic diagnosis block further aligns the response with recent sensor observations. The principal benefit of RAG in this system is therefore not autonomous diagnosis, but better-grounded and more contextually relevant communication. This distinction is particularly important in a health-monitoring setting, where fluent output alone is insufficient evidence of correctness.
 
-\bibitem{ref_book1}
-Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
-Location (1999)
-
-\bibitem{ref_proc1}
-Author, A.-B.: Contribution title. In: 9th International Proceedings
-on Proceedings, pp. 1--2. Publisher, Location (2010)
-
-\bibitem{ref_url1}
-LNCS Homepage, \url{http://www.springer.com/lncs}, last accessed 2023/10/25
-\end{thebibliography}
+The work also identifies clear limits. The current implementation relies on simulated data and qualitative observations, and it has not undergone clinical validation or a controlled evaluation of response quality. The results should consequently be interpreted as evidence of architectural feasibility rather than clinical effectiveness. Future experiments should compare RAG and non-RAG responses, assess source attribution and factual consistency, measure end-to-end latency, and involve qualified clinical reviewers. Within these boundaries, the architecture provides a practical basis for studying how retrieval, streaming telemetry, and deterministic analysis can complement one another in remote health-assistance systems.
 \end{document}

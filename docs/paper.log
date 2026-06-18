@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.7.18)  18 JUN 2026 21:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.7.18)  18 JUN 2026 21:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -242,16 +242,26 @@ LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 4
  (C:\Users\acoss\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 )
+Overfull \hbox (12.34624pt too wide) in paragraph at lines 52--53
+\T1/cmr/bx/n/9 Keywords:\T1/cmr/m/n/9 Retrieval-Augmented Gen-er-a-tion, edge c
+om-put-ing, IoT, health
+ []
+
 [1
 
 {C:/Users/acoss/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+Overfull \hbox (1.90234pt too wide) in paragraph at lines 79--80
+\T1/cmr/bx/n/10 Edge Tier\T1/cmr/m/n/10 , which pri-or-i-tizes re-spon-sive-nes
+s and lo-cal avail-abil-ity, and the \T1/cmr/bx/n/10 Cloud
+ []
+
 <arichitecture.png, id=12, 1615.03375pt x 459.7175pt>
 File: arichitecture.png Graphic file (type png)
 <use arichitecture.png>
-Package pdftex.def Info: arichitecture.png  used on input line 88.
+Package pdftex.def Info: arichitecture.png  used on input line 84.
 (pdftex.def)             Requested size: 451.26164pt x 128.45346pt.
- [2 <./arichitecture.png>] [3]
-Overfull \hbox (13.33426pt too wide) in paragraph at lines 118--119
+[2] [3 <./arichitecture.png>]
+Overfull \hbox (13.33426pt too wide) in paragraph at lines 114--115
 []\T1/cmr/bx/n/10 InfluxDB: \T1/cmr/m/n/10 Time-series database for the long-te
 rm per-sis-tence of high-frequency
  []
@@ -259,53 +269,50 @@ rm per-sis-tence of high-frequency
 <iotFlow.png, id=22, 1285.80376pt x 332.24126pt>
 File: iotFlow.png Graphic file (type png)
 <use iotFlow.png>
-Package pdftex.def Info: iotFlow.png  used on input line 132.
+Package pdftex.def Info: iotFlow.png  used on input line 128.
 (pdftex.def)             Requested size: 347.12354pt x 89.69112pt.
-[4 <./iotFlow.png>]
-<chatFlow.png, id=27, 2078.76625pt x 416.55624pt>
+[4]
+<chatFlow.png, id=26, 2078.76625pt x 416.55624pt>
 File: chatFlow.png Graphic file (type png)
 <use chatFlow.png>
-Package pdftex.def Info: chatFlow.png  used on input line 153.
+Package pdftex.def Info: chatFlow.png  used on input line 146.
 (pdftex.def)             Requested size: 451.26164pt x 90.42227pt.
- [5 <./chatFlow.png>]
+ [5 <./iotFlow.png> <./chatFlow.png>]
 <dataAnalystFlow.png, id=32, 2379.89125pt x 416.55624pt>
 File: dataAnalystFlow.png Graphic file (type png)
 <use dataAnalystFlow.png>
-Package pdftex.def Info: dataAnalystFlow.png  used on input line 171.
+Package pdftex.def Info: dataAnalystFlow.png  used on input line 164.
 (pdftex.def)             Requested size: 451.26164pt x 78.98125pt.
  [6 <./dataAnalystFlow.png>]
 <patient-dashboard.png, id=38, 2871.97969pt x 1425.82687pt>
 File: patient-dashboard.png Graphic file (type png)
 <use patient-dashboard.png>
-Package pdftex.def Info: patient-dashboard.png  used on input line 194.
+Package pdftex.def Info: patient-dashboard.png  used on input line 187.
 (pdftex.def)             Requested size: 347.12354pt x 172.33195pt.
 <patient-chat.png, id=39, 2881.01344pt x 1430.34375pt>
 File: patient-chat.png Graphic file (type png)
 <use patient-chat.png>
-Package pdftex.def Info: patient-chat.png  used on input line 201.
+Package pdftex.def Info: patient-chat.png  used on input line 194.
 (pdftex.def)             Requested size: 347.12354pt x 172.33224pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
  [7 <./patient-dashboard.png>]
 <expert-devices-list.png, id=45, 957.5775pt x 434.37282pt>
 File: expert-devices-list.png Graphic file (type png)
 <use expert-devices-list.png>
-Package pdftex.def Info: expert-devices-list.png  used on input line 211.
+Package pdftex.def Info: expert-devices-list.png  used on input line 204.
 (pdftex.def)             Requested size: 277.69987pt x 125.96489pt.
 <expert-sessions-list.png, id=46, 984.67876pt x 1026.83624pt>
 File: expert-sessions-list.png Graphic file (type png)
 <use expert-sessions-list.png>
-Package pdftex.def Info: expert-sessions-list.png  used on input line 218.
+Package pdftex.def Info: expert-sessions-list.png  used on input line 211.
 (pdftex.def)             Requested size: 277.69987pt x 289.5804pt.
 
-Underfull \vbox (badness 6808) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [8 <./patient-chat.png> <./expert-devices-list.png>]
 <expert-session-details.png, id=52, 2847.8897pt x 1324.19719pt>
 File: expert-session-details.png Graphic file (type png)
 <use expert-session-details.png>
-Package pdftex.def Info: expert-session-details.png  used on input line 225.
+Package pdftex.def Info: expert-session-details.png  used on input line 218.
 (pdftex.def)             Requested size: 347.12354pt x 161.4023pt.
  [9 <./expert-sessions-list.png> <./expert-session-details.png>] [10] [11] (pap
 er.aux)
@@ -313,19 +320,15 @@ er.aux)
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 2151 strings out of 474486
- 33459 string characters out of 5743755
- 1933542 words of memory out of 5000000
- 24454 multiletter control sequences out of 15000+600000
+ 2144 strings out of 474486
+ 33328 string characters out of 5743755
+ 1934542 words of memory out of 5000000
+ 24447 multiletter control sequences out of 15000+600000
  565231 words of font info for 46 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,7n,65p,941b,308s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,7n,65p,1091b,251s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\acoss\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti
 1000.pk> <C:\Users\acoss\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
 0\ecbx1000.pk> <C:\Users\acoss\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
@@ -336,9 +339,9 @@ ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\acoss\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\acoss\AppData\Local\MiKT
 eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk><C:/Users/acoss/AppData/Local
 /Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb>
-Output written on paper.pdf (11 pages, 980709 bytes).
+Output written on paper.pdf (11 pages, 975659 bytes).
 PDF statistics:
- 406 PDF objects out of 1000 (max. 8388607)
+ 391 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  46 words of extra memory for PDF output out of 10000 (max. 10000000)
 
