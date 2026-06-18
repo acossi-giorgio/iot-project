@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.7.18)  18 JUN 2026 22:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.7.18)  18 JUN 2026 22:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -312,8 +312,8 @@ File: expert-session-details.png Graphic file (type png)
 Package pdftex.def Info: expert-session-details.png  used on input line 199.
 (pdftex.def)             Requested size: 312.40906pt x 145.25803pt.
 
-[9 <./expert-sessions-list.png> <./expert-session-details.png>] [10] [11]
-(paper.aux)
+[9 <./expert-sessions-list.png> <./expert-session-details.png>] [10] (paper.aux
+)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
@@ -322,7 +322,7 @@ L3 programming layer <2024-01-04>
 Here is how much of TeX's memory you used:
  2144 strings out of 474486
  33328 string characters out of 5743755
- 1934542 words of memory out of 5000000
+ 1933542 words of memory out of 5000000
  24447 multiletter control sequences out of 15000+600000
  565231 words of font info for 46 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -337,9 +337,9 @@ ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\acoss\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\acoss\AppData\Local\MiKT
 eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk><C:/Users/acoss/AppData/Local
 /Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb>
-Output written on paper.pdf (11 pages, 975078 bytes).
+Output written on paper.pdf (10 pages, 974310 bytes).
 PDF statistics:
- 390 PDF objects out of 1000 (max. 8388607)
+ 387 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  46 words of extra memory for PDF output out of 10000 (max. 10000000)
 
