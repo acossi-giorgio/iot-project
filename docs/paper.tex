@@ -1,34 +1,13 @@
-% This is samplepaper.tex, a sample chapter demonstrating the
-% LLNCS macro package for Springer Computer Science proceedings;
-% Version 2.21 of 2022/01/12
-%
 \documentclass[runningheads]{llncs}
-%
 \usepackage[T1]{fontenc}
-% T1 fonts will be used to generate the final print and online PDFs,
-% so please use T1 fonts in your manuscript whenever possible.
-% Other font encondings may result in incorrect characters.
-%
 \usepackage{graphicx}
 \usepackage{float}
-% Used for displaying a sample figure. If possible, figure files should
-% be included in EPS format.
-%
-% If you use the hyperref package, please uncomment the following two lines
-% to display URLs in blue roman font according to Springer's eBook style:
-%\usepackage{color}
-%\renewcommand\UrlFont{\color{blue}\rmfamily}
-%\urlstyle{rm}
-%
+
 \begin{document}
 \raggedbottom
-%
-\title{An Edge--Cloud RAG Architecture for Real-Time Health Monitoring}
-%
-%\titlerunning{Abbreviated paper title}
-% If the paper title is too long for the running head, you can set
-% an abbreviated paper title here
-%
+
+\title{An Hybrid RAG Architecture for Real-Time Health Monitoring}
+
 \author{
 Giorgio Acossi\inst{1}
 \and
@@ -36,25 +15,21 @@ Marco Castagna\inst{1}
 \and 
 Giorgio Delzanno\inst{1}
 }
-%
+
 \authorrunning{G. Acossi et al.}
-% First names are abbreviated in the running head.
-% If there are more than two authors, 'et al.' is used.
-%
+
 \institute{DIBRIS
 \email{...}
 }
-%
-\maketitle              % typeset the header of the contribution
-%
+
+\maketitle
+
 \begin{abstract}
 This paper presents an IoT health-monitoring platform that connects patients and healthcare professionals through real-time telemetry and AI-assisted interaction. The platform adopts a hybrid architecture: edge services handle data acquisition, validation, caching, and offline operation, while cloud services provide persistent storage, centralized monitoring, and Retrieval-Augmented Generation (RAG). The clinical assistant retrieves relevant passages from a biomedical knowledge base and combines them with patient queries; an additional rule-based workflow enriches this context with labels derived from recent vital-sign measurements. Separate dashboards support patients and clinical experts. The prototype illustrates how RAG can improve the relevance and grounding of responses by supplying the language model with domain-specific evidence, while deterministic analysis provides an explicit link to the patient's current physiological state. The system is intended as a research prototype and not as a substitute for professional medical assessment.
 
 \keywords{Retrieval-Augmented Generation, edge computing, IoT, health monitoring, large language models}
 \end{abstract}
-%
-%
-%
+
 \section{Introduction}
 
 Retrieval-Augmented Generation (RAG) combines language-model generation with the retrieval of external knowledge. By placing relevant source material in the model context, RAG can produce responses that are more closely grounded in domain-specific information than responses generated from model parameters alone. Most conventional RAG systems, however, operate on static or slowly changing document collections. Health-monitoring applications must also account for a second source of context: physiological measurements that change continuously.
